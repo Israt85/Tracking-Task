@@ -1,22 +1,51 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+// import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import Swal from "sweetalert2";
+import useTasks from "../../Hooks/useTasks";
 
 
-const Card = ({Title,color}) => {
+const Card = ({Title,color,displayData}) => {
+  
+ const [tasks,refetch]= useTasks([])
+  
 
-    const [tasks, setTasks]= useState([])
-    useEffect(() => {
-        axios.get('http://localhost:3000/tracking')
-            .then(res =>{
-               console.log(res.data)
-               setTasks(res.data)}) 
-            .catch(error => {
-                console.log(error);
-              
-            })
-    }, [])
+const defaultDate = new Date().toISOString().slice(0, 10);
+  
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm()
+
+
+  // submitting the form for post
+  const onSubmit= (data) =>{ 
+    console.log(data._id)
+  const obj ={
+    title: data.title,
+    description: data.description,
+    team: data.team,
+    assignees: data.assignees,
+    piority: data.piority,
+    status:data.status
+  }
+  axios.put(`http://localhost:3000/tracking/${data?._id}`, obj)
+  .then(res=>{
+  console.log(res.data);
+  })
+  refetch()
+  .catch(error=>{
+  console.log(error);
+  })
+
+  document.getElementById('my_modal_3').close();
+  
+}
+
+
     
     const handleDelete = (user) => {
       Swal.fire({
@@ -44,23 +73,25 @@ const Card = ({Title,color}) => {
       });
   }  
     
+
+
+
     return (
         <div className="bg-white h-auto rounded-lg ">
             <div className={`${color} h-8 py-1 text-center rounded-ss-lg rounded-se-lg`}>
            {Title} 
            </div>
            {
-    tasks?.map(task => (
-        task.status?.toLowerCase() === Title?.toLowerCase() && (
-
-
-            <div key={task?.id} className="m-2 h-auto bg-base-200 ">
+            displayData?.map(task => (
+      // console.log(task)
+        task?.status?.toLowerCase() === Title?.toLowerCase() && 
+        ( <div key={task?.id} className="m-2 h-auto bg-base-200 ">
   <div className="p-2 text-black">
  <div className="flex justify-between items-center my-2 border-b-2 border-black">
  <h2 className="card-title  text-sm">
                 {task.title}
             </h2>
-            <span className="bg-blue-900 px-1 rounded-sm text-white">{task?.priority}</span>
+            <p className="bg-blue-900 px-1 rounded-sm text-white">{task?.priority}</p>
  </div>
     <p className="text-xs">{task?.description}</p>
     <div className="flex my-1 justify-between flex-row">
@@ -76,37 +107,37 @@ const Card = ({Title,color}) => {
     <h2 className="font-bold">EDIT TASK</h2>
       <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
     </form>
-    <form className="card-body h-full bg-purple-100">
+    <form onSubmit={handleSubmit(() => onSubmit(task._id))} className="card-body h-full text-black bg-purple-100">
         <div className=" ">
           <label className="label w-24 ">
             <span className="label-text">Title: </span>
           </label>
-          <input type="email" className="py-1 rounded-md w-full" required />
+          <input type="text" {...register("title")} defaultValue={task?.title} className="py-1 rounded-md w-full"  required />
         </div>
         <div>
           <label className="label w-18 ">
             <span className="label-text">Description: </span>
           </label>
-          <input type="email" className="py-3 rounded-md w-full" required />
+          <input type="text"{...register("description")}  defaultValue={task?.description} className="py-3 rounded-md w-full" required />
         </div>
         <div>
           <label className="label w-24 ">
             <span className="label-text">Team: </span>
           </label>
-          <input type="email" className="py-1 rounded-md w-full" required />
+          <input type="text" {...register("team")} defaultValue={task?.team} className="py-1 rounded-md w-full" required />
         </div>
         <div>
           <label className="label w-24 ">
             <span className="label-text">Assignees: </span>
           </label>
-          <input type="email" className="py-1 rounded-md w-full" required />
+          <input type="text" {...register("assignees")} className="py-1 rounded-md w-full" required />
         </div>
       <div className="flex justify-between">
       <div className=" flex w-full gap-1">
           <label className="label ">
             <span className="label-text">Piority:  </span>
           </label>
-          <select className="w-10 rounded-md" name="" id="">
+          <select {...register("piority")} defaultValue={task?.priority} className="w-10 rounded-md" name="piority" id="">
             <option value="P0">P0</option>
             <option value="P1">P1</option>
             <option value="P2">P2</option>
@@ -117,10 +148,15 @@ const Card = ({Title,color}) => {
           <label className="label ">
             <span className="label-text">Status:  </span>
           </label>
-         <input className="border border-black rounded-lg w-20 text-center" type="text" defaultValue='Completed' />
+          <input className="border border-black rounded-lg w-20 text-center" type="text" defaultValue={task?.status} />
+
           
         </div>
       </div>
+
+     <div className="max-w-[content] mx-auto">
+     <button className="bg-blue-800 p-2 text-white rounded-lg">Update</button>
+     </div>
         
       </form>
   </div>

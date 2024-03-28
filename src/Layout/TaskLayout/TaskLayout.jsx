@@ -2,45 +2,69 @@ import axios from "axios";
 import Card from "../Card/Card";
 import { useForm } from "react-hook-form"
 import Swal from "sweetalert2";
-
+import { useState, useMemo } from "react"; // Import useState and useMemo
+import useTasks from "../../Hooks/useTasks";
 
 const TaskLayout = () => {
-
+  const defaultDate = new Date().toISOString().slice(0, 10);
+  const [tasks, refetch] = useTasks();
+  const [sort, setSort] = useState('Priority'); // Initialize sort state
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm()
-  const onSubmit= (data) =>{ 
-    console.log(data)
-  const obj ={
-    title: data.title,
-    description: data.description,
-    team: data.team,
-    assignees: data.assignees,
-    piority: data.piority,
-    status:'Pending'
-  }
-  axios.post('http://localhost:3000/tracking', obj)
-  .then(res=>{
-  console.log(res.data);
-  if(res.data.insertedId){
-    Swal.fire({
-      position: "top-center",
-      icon: "success",
-      title: "Your Task have been saved.",
-      showConfirmButton: false,
-      timer: 1500
-    });
-  }
-  })
-  .catch(error=>{
-  console.log(error);
-  })
+  } = useForm();
 
-  document.getElementById('my_modal_3').close();
-}
+  // Define handleSort function to update sort state
+  const handleSort = (e) => {
+    setSort(e.target.value);
+  };
+
+// applying useMemo
+  const sortedData = useMemo(() => {
+    if (sort === 'Priority') {
+      return tasks;
+    } else {
+      return tasks.filter(task => task.priority === sort);
+    }
+  }, [sort, tasks]);
+
+  console.log('sorted',sortedData);
+  
+
+  const onSubmit = (data) => {
+    console.log(data)
+    const obj = {
+      title: data.title,
+      description: data.description,
+      team: data.team,
+      assignees: data.assignees,
+      piority: data.piority,
+      startDate: data.startDate,
+      endDate: null,
+      status: 'Pending'
+    };
+    axios.post('http://localhost:3000/tracking', obj)
+      .then(res => {
+        console.log(res.data);
+        if (res.data.insertedId) {
+          Swal.fire({
+            position: "top-center",
+            icon: "success",
+            title: "Your Task has been saved.",
+            showConfirmButton: false,
+            timer: 1500
+          });
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      });
+
+    document.getElementById('my_modal_3').close();
+  };
+
     return (
         <div className="border-2 border-white p-4 rounded-lg h-auto m-6">
            <div className="flex flex-col gap-2 lg:flex-row justify-between my-2">
@@ -49,14 +73,14 @@ const TaskLayout = () => {
             <div>
             <input className="w-20 ml-2 text-center" type="text" name="" id="" placeholder="Assignee"/>
             </div>
-              <div>
+            <div>
               <select name="" id="">
-            <option defaultValue="Piority">Piority</option>
-            <option value="P0">P0</option>
-            <option value="P1">P1</option>
-            <option value="P2">P2</option>
-            </select>
-              </div>
+                <option value="Priority">Priority</option>
+                <option value="P0">P0</option>
+                <option value="P1">P1</option>
+                <option value="P2">P2</option>
+              </select>
+            </div>
               <div>
                 <input type="date" name="" id="" />
               </div>
@@ -79,7 +103,7 @@ const TaskLayout = () => {
           <label className="label w-24 ">
             <span className="label-text">Title: </span>
           </label>
-          <input type="text"  {...register("title")} className="py-1 rounded-md w-full" required />
+          <input type="text" {...register("title")} className="py-1 rounded-md w-full" required />
         </div>
         <div className=" flex flex-col lg:flex-row w-full gap-2 justify-between">
           <label className="label w-18 ">
@@ -110,6 +134,14 @@ const TaskLayout = () => {
           </select>
           
         </div>
+        <input
+  type="date"
+  {...register("startDate")}
+  defaultValue={defaultDate}
+  className="py-1 rounded-md w-full"
+  required
+/>
+
         <div className="max-w-[content] mx-auto">
         <button className="btn bg-blue-600 p-2 rounded-lg text-white">Submit</button>
         </div>
@@ -125,25 +157,26 @@ const TaskLayout = () => {
             
             
            </div>
-           <p className="flex gap-2 to-blue-950">Sort By :
-           
-           <div>
-              <select name="" id="">
-            <option defaultValue="Piority">Piority</option>
-            <option value="P0">P0</option>
-            <option value="P1">P1</option>
-            <option value="P2">P2</option>
-            </select>
-              </div>
-           </p>
+           <p className="flex gap-2 to-blue-950">
+  Sort By :
+  <div>
+    <select name="" id="" onChange={handleSort} defaultValue="Priority">
+      <option value="Priority">Priority</option>
+      <option value="P0">P0</option>
+      <option value="P1">P1</option>
+      <option value="P2">P2</option>
+    </select>
+  </div>
+</p>
+
           
 
            <div className="grid grid-cols-2 lg:grid-cols-5 text-white mt-4 gap-4">
-            <Card color={'bg-gray-400'} Title={'Pending'}></Card>
-            <Card color={'bg-yellow-600'} Title={'In progress'}/>
-            <Card color={'bg-green-500'} Title={'completed'}/>
-            <Card color={'bg-blue-950'} Title={'deployed'}/>
-            <Card color={'bg-red-300'} Title={'Deferred'}/>
+            <Card displayData={sortedData} color={'bg-gray-400'} Title={'Pending'}></Card>
+            <Card displayData={sortedData} color={'bg-yellow-600'} Title={'In progress'}/>
+            <Card displayData={sortedData} color={'bg-green-500'} Title={'Completed'}/>
+            <Card displayData={sortedData} color={'bg-blue-950'} Title={'Deployed'}/>
+            <Card displayData={sortedData} color={'bg-red-300'} Title={'Deferred'}/>
            </div>
         </div>
     );
