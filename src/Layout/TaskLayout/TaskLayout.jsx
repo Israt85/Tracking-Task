@@ -4,33 +4,68 @@ import { useForm } from "react-hook-form"
 import Swal from "sweetalert2";
 import { useState, useMemo } from "react"; // Import useState and useMemo
 import useTasks from "../../Hooks/useTasks";
+import DateRangeInput from "../DateRangePicker/DateRangePicker";
 
 const TaskLayout = () => {
   const defaultDate = new Date().toISOString().slice(0, 10);
-  const [tasks, refetch] = useTasks();
-  const [sort, setSort] = useState('Priority'); // Initialize sort state
+  const [tasks, refetch] = useTasks([]);
+  const [sort, setSort] = useState('Priority');
+  const [filterdItem, setFilterdItem] = useState("") 
+  const [PriorityItem, setPriorityItem] = useState("Priority")
+  const [startDate, setStartDate] = useState('');
+const [endDate, setEndDate] = useState('');
+
   const {
     register,
     handleSubmit,
-    watch,
+    reset,
     formState: { errors },
   } = useForm();
+
+
+
+
+
 
   // Define handleSort function to update sort state
   const handleSort = (e) => {
     setSort(e.target.value);
   };
 
-// applying useMemo
-  const sortedData = useMemo(() => {
-    if (sort === 'Priority') {
+  const filterdData = useMemo(() => {
+    if (!filterdItem || !PriorityItem || !startDate && !endDate) {
       return tasks;
-    } else {
-      return tasks.filter(task => task.priority === sort);
     }
-  }, [sort, tasks]);
+  
+    return tasks?.filter(task => {
+      const assignee = task?.assignee;
+      const priority = task?.priority;
+      const taskDate = new Date(task.startDate);
+      
+      // Check if assignee or priority match the filter criteria
+      const assigneeMatch = !filterdItem || (assignee && assignee.toLowerCase().includes(filterdItem.toLowerCase().trim()));
+      const priorityMatch = !PriorityItem || (priority && priority.toLowerCase().includes(PriorityItem.toLowerCase().trim()));
+      
+      // Check if task falls within the specified date range
+      const dateInRange = !startDate || !endDate || (taskDate >= new Date(startDate) && taskDate <= new Date(endDate));
+      
+   
+      return assigneeMatch || priorityMatch && dateInRange;
+    });
+  }, [tasks, filterdItem, PriorityItem, startDate, endDate]);
+  
 
-  console.log('sorted',sortedData);
+
+  
+
+// applying useMemo for sorting
+const sortedData = useMemo(() => {
+  if (sort === 'Priority') {
+    return filterdData;
+  } else {
+    return [...filterdData]?.filter(task => task.priority === sort);
+  }
+}, [sort,filterdData]);
   
 
   const onSubmit = (data) => {
@@ -48,6 +83,7 @@ const TaskLayout = () => {
     axios.post('http://localhost:3000/tracking', obj)
       .then(res => {
         console.log(res.data);
+        refetch()
         if (res.data.insertedId) {
           Swal.fire({
             position: "top-center",
@@ -61,9 +97,15 @@ const TaskLayout = () => {
       .catch(error => {
         console.log(error);
       });
-
+    reset()
     document.getElementById('my_modal_3').close();
   };
+  const handleReset =()=>{
+    const form = document.getElementById('myForm');
+    if (form) {
+      form.reset();
+    }
+  }
 
     return (
         <div className="border-2 border-white p-4 rounded-lg h-auto m-6">
@@ -71,19 +113,40 @@ const TaskLayout = () => {
             <div>
             <p className="flex flex-col lg:flex-row gap-2">Filter By :
             <div>
-            <input className="w-20 ml-2 text-center" type="text" name="" id="" placeholder="Assignee"/>
+            <input
+                type="text"
+                name="assignee"
+                value={filterdItem}
+               onChange={(e) => setFilterdItem(e.target.value)}
+                placeholder="Assignee"
+              />
             </div>
             <div>
-              <select name="" id="">
+            <select
+                name="priority"
+                value={PriorityItem}
+                onChange={(e) => setPriorityItem(e.target.value)}
+              >
                 <option value="Priority">Priority</option>
                 <option value="P0">P0</option>
                 <option value="P1">P1</option>
                 <option value="P2">P2</option>
               </select>
             </div>
-              <div>
-                <input type="date" name="" id="" />
-              </div>
+            <div>
+  <input
+    type="date"
+    value={startDate}
+    onChange={(e) => setStartDate(e.target.value)}
+    placeholder="Start Date (yyyy-mm-dd)"
+  />
+  <input
+    type="date"
+    value={endDate}
+    onChange={(e) => setEndDate(e.target.value)}
+    placeholder="End Date (yyyy-mm-dd)"
+  />
+</div>
             </p>
            
             </div>
@@ -98,30 +161,30 @@ const TaskLayout = () => {
       <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
     </form>
     {/* Task form */}
-    <form onSubmit={handleSubmit(onSubmit)} className="card-body h-full bg-purple-100">
+    <form id="myForm" onSubmit={handleSubmit(onSubmit)} className="card-body h-full bg-purple-100">
         <div className=" flex flex-col lg:flex-row w-full gap-2 justify-between">
           <label className="label w-24 ">
             <span className="label-text">Title: </span>
           </label>
-          <input type="text" {...register("title")} className="py-1 rounded-md w-full" required />
+          <input type="text" {...register("title")} className="py-1 px-2 rounded-md w-full" required />
         </div>
         <div className=" flex flex-col lg:flex-row w-full gap-2 justify-between">
           <label className="label w-18 ">
             <span className="label-text">Description: </span>
           </label>
-          <input type="text" {...register("description")} className="py-3 rounded-md w-full" required />
+          <input type="text" {...register("description")} className="py-3 px-2 rounded-md w-full" required />
         </div>
         <div className=" flex flex-col lg:flex-row w-full gap-2 justify-between">
           <label className="label w-24 ">
             <span className="label-text">Team: </span>
           </label>
-          <input type="text"  {...register("team")} className="py-1 rounded-md w-full" required />
+          <input type="text"  {...register("team")} className="py-1 px-2 rounded-md w-full" required />
         </div>
         <div className=" flex flex-col lg:flex-row w-full gap-2 justify-between">
           <label className="label w-24 ">
             <span className="label-text">Assignees: </span>
           </label>
-          <input type="text"  {...register("assignees")} className="py-1 rounded-md w-full" required />
+          <input type="text"  {...register("assignees")} className="py-1 px-2 rounded-md w-full" required />
         </div>
         <div className=" flex w-full gap-2">
           <label className="label w-20">
@@ -142,8 +205,9 @@ const TaskLayout = () => {
   required
 />
 
-        <div className="max-w-[content] mx-auto">
+        <div className="flex justify-end">
         <button className="btn bg-blue-600 p-2 rounded-lg text-white">Submit</button>
+        <button onClick={handleReset} className="btn bg-blue-600 p-2 rounded-lg text-white">Reset</button>
         </div>
         
       </form>
