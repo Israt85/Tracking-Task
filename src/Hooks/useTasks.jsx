@@ -8,7 +8,7 @@ const useTasks = () => {
     const { data: tasks, refetch } = useQuery({
         queryKey: ['task'],
         queryFn: async () => {
-            const res = await axios.get(`http://localhost:3000/tracking?email=${user.email}`)
+            const res = await axios.get(`https://tracking-task-server.vercel.app/tracking?email=${user.email}`)
             console.log(res.data)
             return(res.data)
     

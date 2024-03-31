@@ -13,17 +13,20 @@ const Login = () => {
     const {
         register,
         handleSubmit,
-        formState: { errors },
+        
       } = useForm()
       const onSubmit = (data) =>{
         console.log(data)
         signInUser(data.email, data.password)
         .then(result =>{
             console.log(result.user)
-            .catch(error =>{
-                console.log(error);
-            })
+            navigate('/dashboard')
+           
         })
+        .catch(err=>{
+          console.log(err);
+        })
+        
       }
       const handleGoogle=()=>{
         googleLogin()
@@ -34,7 +37,7 @@ const Login = () => {
                 name: result.user?.displayName,
                 email: result.user?.email
             }
-            axios.post('http://localhost:3000/users',userInfo)
+            axios.post('https://tracking-task-server.vercel.app/users',userInfo)
             .then(res=>{
                 console.log(res.data);
                 

@@ -39,8 +39,9 @@ const Card = ({Title,color,displayData}) => {
     status: status
   }
   console.log(obj);
+  console.log(data);
   
-  axios.put(`http://localhost:3000/tracking/${data?._id}`, obj)
+  axios.put(`https://tracking-task-server.vercel.app/tracking/${data?._id}`, obj)
   .then(res=>{
   console.log(res.data)
   if(res.data.modifiedCount>0){
@@ -76,7 +77,7 @@ const Card = ({Title,color,displayData}) => {
           confirmButtonText: "Yes, delete it!"
       }).then((result) => {
           if (result.isConfirmed) {
-              axios.delete(`http://localhost:3000/tracking/${user._id}`)
+              axios.delete(`https://tracking-task-server.vercel.app/tracking/${user._id}`)
                   .then(res => {
                       if (res.data.deletedCount > 0) {
                           Swal.fire({
@@ -135,25 +136,25 @@ const handleEdit = (task)=>{
                   <label className="label w-24 ">
                     <span className="label-text">Title: </span>
                   </label>
-                  <input type="text" name="title" defaultValue={editTask?.title} className="py-1 px-2 rounded-md w-full"  required />
+                  <input type="text" name="title" defaultValue={editTask?.title} className="py-1 px-2 rounded-md w-full" readOnly required />
                 </div>
                 <div>
                   <label className="label w-18 ">
                     <span className="label-text">Description: </span>
                   </label>
-                  <input type="text" name="description" defaultValue={editTask?.description} className="py-3 px-2 rounded-md w-full" required />
+                  <input type="text" name="description" defaultValue={editTask?.description} readOnly className="py-3 px-2 rounded-md w-full" required />
                 </div>
                 <div>
                   <label className="label w-24 ">
                     <span className="label-text">Team: </span>
                   </label>
-                  <input type="text" name="team" defaultValue={editTask?.team} className="py-1 px-2 rounded-md w-full" required />
+                  <input type="text" name="team" defaultValue={editTask?.team} readOnly className="py-1 px-2 rounded-md w-full" required />
                 </div>
                 <div>
                   <label className="label w-24 ">
                     <span className="label-text">Assignees: </span>
                   </label>
-                  <input type="text" name="assignee" defaultValue={editTask?.
+                  <input type="text" name="assignee" readOnly defaultValue={editTask?.
 assignees} className="py-1 px-2 rounded-md w-full" required />
                 </div>
               <div className="flex flex-col lg:flex-row gap-2 justify-between">

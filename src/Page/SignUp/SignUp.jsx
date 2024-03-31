@@ -27,7 +27,7 @@ const SignUp = () => {
               name: data.name,
               email : data.email
            }
-           axios.post('http://localhost:3000/users', userInfo)
+           axios.post('https://tracking-task-server.vercel.app/users', userInfo)
            .then(res =>{
             if(res.data.insertedId){
               console.log('user added');
@@ -59,7 +59,7 @@ const SignUp = () => {
                 name: result.user?.displayName,
                 email: result.user?.email
             }
-            axios.post('http://localhost:3000/users',userInfo)
+            axios.post('https://tracking-task-server.vercel.app/users',userInfo)
             .then(res=>{
                 console.log(res.data);
                 

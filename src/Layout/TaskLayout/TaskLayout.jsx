@@ -50,7 +50,7 @@ const [endDate, setEndDate] = useState('');
       const dateInRange = !startDate || !endDate || (taskDate >= new Date(startDate) && taskDate <= new Date(endDate));
       
    
-      return assigneeMatch || priorityMatch && dateInRange;
+      return assigneeMatch && priorityMatch && dateInRange;
     });
   }, [tasks, filterdItem, PriorityItem, startDate, endDate]);
   
@@ -74,13 +74,13 @@ const sortedData = useMemo(() => {
       title: data.title,
       description: data.description,
       team: data.team,
-      assignees: data.assignees,
-      piority: data.piority,
       startDate: data.startDate,
       endDate: null,
-      status: 'Pending'
+      status: 'Pending',
+      assignees: data.assignees,
+      priority: data.priority,
     };
-    axios.post('http://localhost:3000/tracking', obj)
+    axios.post('https://tracking-task-server.vercel.app/tracking', obj)
       .then(res => {
         console.log(res.data);
         refetch()
@@ -188,9 +188,9 @@ const sortedData = useMemo(() => {
         </div>
         <div className=" flex w-full gap-2">
           <label className="label w-20">
-            <span className="label-text">Piority:  </span>
+            <span className="label-text">priority:  </span>
           </label>
-          <select {...register("piority")} className="w-10 rounded-md" name="piority" id="">
+          <select {...register("priority")} className="w-10 rounded-md" name="priority" id="">
             <option value="P0">P0</option>
             <option value="P1">P1</option>
             <option value="P2">P2</option>
